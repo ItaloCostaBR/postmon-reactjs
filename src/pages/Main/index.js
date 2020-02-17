@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+import InputMask from "react-input-mask";
+import './style.scss';
+import TableComponent from '../../components/Table';
 
 export default class Main extends Component {
     constructor(props) {
@@ -24,33 +27,56 @@ export default class Main extends Component {
     }
     handlerSubmitCep = e => {
         e.preventDefault();
-
-        this.getInfoAddress(this.state.cep)
-        .then( res => {
-            this.setState({...this.state, data: res, loading: false, error: false});
-        }).catch( err=> {
-            console.log(err)
-            this.setState({...this.state, data: {}, loading: false, error: true});
-        });
+        if(this.state.cep !== null) {
+            this.getInfoAddress(this.state.cep)
+                .then( res => {
+                    this.setState({...this.state, data: res, loading: false, error: false});
+                }).catch( err=> {
+                    console.log(err)
+                    this.setState({...this.state, data: {}, loading: false, error: true});
+                });
+        } else {
+            alert('O campo de CEP é obrigatório.')
+        }
     }
     render() {
-        const { logradouro, complemento, cep, bairro, cidade, estado } = this.state.data;
         return (
             <main>
-                <div className="container">
-                    <form onSubmit={this.handlerSubmitCep}>
-                        <input type="text" name="cep" autoComplete="off" onChange={this.handleChangeCep} />
-                        <button type="submit">Submit</button>
+                <div className="container py-5">
+                    <form className="form-cep" onSubmit={this.handlerSubmitCep}>
+                        <div className="form-group">
+                            <label htmlFor="cep">Informe o CEP</label>
+                            <InputMask
+                            mask="99999-999"
+                            type="text"
+                            className="form-control"
+                            id="cep"
+                            name="cep"
+                            autoComplete="off"
+                            onChange={this.handleChangeCep} />
+                        </div>
+                        <button type="submit" className="btn btn-dark">Buscar</button>
                     </form>
-                    {this.state.loading ? 'Loading...' : (
-                        this.state.error ? (
-                            <p>Error</p>
-                        ) : (
-                            logradouro || complemento ? (
-                                <p>Address: {logradouro + ' ' + complemento + ' - ' + cep + '. ' + bairro + ', ' + cidade + ' - ' + estado }</p>
-                            ) : ''
-                        )
-                    )}
+                    <div id="result">
+                        <div className="card">
+                            <div className="card-header">
+                                Resultado da busca
+                            </div>
+                            <div className="card-body">
+                                {
+                                    this.state.loading ? (
+                                        <div className="spinner-border text-warning" role="status">
+                                            <span className="sr-only">Loading...</span>
+                                        </div>
+                                    ) : (
+                                        this.state.error
+                                        ? ( <p>Ops! Algo deu errado :(</p> )
+                                        : <TableComponent contentTable={this.state.data} />
+                                    )
+                                }
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </main>
         )
